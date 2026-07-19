@@ -9,8 +9,8 @@ from app.modules.users.api.v1.schemas import (
     UserResponse,
     UserUpdate,
 )
+from app.core.database.dependencies import current_user_dependency
 from app.modules.shared.dependencies import (
-    current_user_dependency,
     require_admin_dependency,
     require_self_or_admin_dependency,
 )

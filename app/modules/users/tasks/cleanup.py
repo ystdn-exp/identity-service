@@ -1,10 +1,9 @@
-import asyncio
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import delete
 
 from app.core.celery_app import celery_app
-from app.core.database import SyncSessionLocal
+from app.core.database.connection import SyncSessionLocal
 from app.modules.users.models import User
 
 

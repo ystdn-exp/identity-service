@@ -1,11 +1,8 @@
-from fastapi import Depends
 from uuid import UUID
-from typing import Annotated
 
 from app.modules.shared.enums import UserRole
 from app.modules.shared.exceptions import ForbiddenError
-from app.modules.shared.dependencies import current_user_dependency
-from app.modules.users.models import User
+from app.core.database.dependencies import current_user_dependency
 
 
 def require_role(*allowed_roles: UserRole):

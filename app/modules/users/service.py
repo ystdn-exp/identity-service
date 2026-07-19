@@ -7,7 +7,7 @@ from sqlalchemy.future import select
 
 from app.modules.shared.enums import OTPType, UserRole
 from app.modules.users.models import User
-from app.core.database import db_dependency
+from app.core.database.connection import db_dependency
 from app.modules.shared.exceptions import NotFoundError
 from app.modules.shared.utils import create_otp, generate_otp_code, otp_exists
 from app.modules.users.tasks.email_verification import send_otp_email

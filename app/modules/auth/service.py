@@ -10,7 +10,7 @@ from app.modules.shared.exceptions import (
     UnauthorizedError,
 )
 from app.modules.users.models import TokenBlacklist, User
-from app.modules.shared.dependencies import db_dependency
+from app.core.database.connection import db_dependency
 from app.modules.shared.utils import (
     create_otp,
     otp_exists,

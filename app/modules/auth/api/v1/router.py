@@ -13,10 +13,8 @@ from app.modules.auth.api.v1.schemas import (
     TokenResponse,
 )
 from app.modules.users.api.v1.schemas import UserResponse
-from app.modules.shared.dependencies import (
-    current_user_dependency,
-    oauth2_scheme_dependency,
-)
+from app.core.database.dependencies import current_user_dependency
+from app.core.database.auth import oauth2_scheme_dependency
 from app.modules.shared.enums import OTPType
 
 router = APIRouter(prefix="/auth", tags=["Auth"])

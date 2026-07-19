@@ -6,7 +6,7 @@ from app.modules.shared.exceptions import register_exception_handlers
 from app.core.routes.routes_v1 import router
 from app.core.logging import init_logging
 from app.core.sentry import init_sentry
-from app.core.schema import register_error_schema
+from app.core.openapi import register_error_schema
 
 description = """
 ## Identity Service
