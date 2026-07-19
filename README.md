@@ -88,13 +88,13 @@ app/
     └── users/                # the user resource itself (profile, admin listing)
 ```
 
-**`core`** is plumbing the whole app needs no matter what it does: how to
-talk to the database, where settings come from, the Celery instance, logging,
-error tracking, CORS. None of it knows anything about users or auth
-specifically.
+`core` is just plumbing - talking to the database, where settings come from,
+the Celery instance, logging, error tracking, CORS. None of it knows
+anything about users or auth specifically, and it shouldn't need to.
 
-**`modules`** is where the actual product lives, one folder per domain.
-Today that's `auth` and `users`; if this grows, each new domain gets its own folder shaped the same way:
+The actual product lives in `modules`, one folder per domain. Right now
+that's just `auth` and `users`, but if this grows, each new domain gets its
+own folder shaped the same way:
 
 ```
 modules/<name>/
@@ -107,38 +107,36 @@ modules/<name>/
 └── tasks/                # Celery jobs this module owns
 ```
 
-**`shared`** is the one folder every module is allowed to import from -
-JWT encode/decode, password hashing, OTP helpers, the shared enums, the
-exception classes + handlers, cross-module permission checks
-(`require_admin`, `require_self_or_admin`), and the base SQLAlchemy model.
-Anything two modules both need goes here instead of being copy-pasted or
-imported directly between modules.
+Every module can import from `shared` - JWT encode/decode, password
+hashing, OTP helpers, the enums, exceptions, cross-module permission checks
+(`require_admin`, `require_self_or_admin`), the base SQLAlchemy model - but
+not from each other. Anything two modules both need goes in `shared`
+instead of getting copy-pasted or imported directly between them.
 
-`auth` and `users` do lean on each other a bit (auth issues tokens for the
-`User` model, which lives in `users`) - that's fine since they're tightly
-related, but it's not a pattern to repeat for unrelated modules. If two
-domains that shouldn't know about each other need to talk, that's what
-`shared` is for.
+`auth` and `users` bend that rule a little (auth issues tokens for the
+`User` model, which lives in `users`), but that's fine since the two are
+tightly coupled by nature. It's not a pattern to repeat for domains that
+don't actually need to know about each other.
 
 ## A few decisions worth knowing about
 
-**Tokens.** Login gives you an access token (short-lived, ~10 min) and a
-refresh token (~7 days). `/auth/refresh` trades a refresh token for a new
-pair - the old refresh token gets blacklisted in the same call, so it's a
-one-time use, not just a renewal. Logout blacklists whatever access +
-refresh tokens you send it; nothing is invalidated just by expiring, it has
-to be explicit.
+Login gives you an access token (10 minutes) and a refresh token (7 days).
+Hitting `/auth/refresh` trades the refresh token for a new pair, and the
+old one gets blacklisted in that same call - it's one-time use, not just a
+renewal. Logout works the same way, blacklisting whatever access + refresh
+tokens you send it. Nothing becomes invalid just by expiring; it has to be
+blacklisted explicitly.
 
-**Verification is one pattern, reused three times.** Signup, changing your
-email, and resetting your password all work the same way under the hood:
-create an OTP code, email it through Celery, verify it against what the
-user submits. Same mechanism (`OTPType` just tags which flow it's for),
-so fixing or improving it in one place fixes it everywhere.
+Signup, changing your email, and resetting your password all lean on the
+same mechanism under the hood: generate an OTP code, email it through
+Celery, verify it against what the user submits. `OTPType` just tags which
+flow it's for, so improving the OTP logic once fixes it everywhere it's
+used.
 
-**Unverified accounts don't stick around.** New users start with
-`is_verified=False`. A daily Celery job deletes anyone who's stayed
-unverified for 2+ days, so an abandoned signup can't permanently squat on
-an email address someone else might want to use.
+New users start out unverified and stay that way until they confirm the
+code. A daily Celery job deletes anyone who's been sitting unverified for
+2+ days, so an abandoned signup can't hold an email address hostage
+forever.
 
-**Env vars** are all documented (with sane dev defaults) in `.env.example` -
-that file is the source of truth, not this README.
+One more thing worth knowing: `.env.example` is the real source of truth
+for config, not this file - it already has sane defaults for local dev.
