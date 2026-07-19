@@ -1,0 +1,25 @@
+[project]
+name = "identity-service"
+version = "0.1.0"
+description = "Users and authentication service"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "alembic>=1.18.5",
+    "bcrypt>=5.0.0",
+    "celery>=5.6.3",
+    "fastapi-mail>=1.6.5",
+    "fastapi[standard]>=0.139.2",
+    "fastuuid7>=0.3.0",
+    "greenlet>=3.5.3",
+    "psycopg[binary]>=3.3.4",
+    "pyjwt[crypto]>=2.13.0",
+    "redis>=8.0.1",
+    "sentry-sdk>=2.66.0",
+    "sqlalchemy>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+]
