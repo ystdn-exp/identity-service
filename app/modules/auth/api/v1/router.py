@@ -14,7 +14,7 @@ from app.modules.auth.api.v1.schemas import (
 )
 from app.modules.users.api.v1.schemas import UserResponse
 from app.core.database.dependencies import current_user_dependency
-from app.core.database.auth import oauth2_scheme_dependency
+from app.core.database.auth import bearer_scheme_dependency
 from app.modules.shared.enums import OTPType
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     status_code=201,
 )
 async def signup(user: SignupRequest, auth_service: auth_service_dependency):
-    return await auth_service.signup(user.model_dump())
+    return await auth_service.signup(user)
 
 
 @router.post(
@@ -39,7 +39,7 @@ async def signup(user: SignupRequest, auth_service: auth_service_dependency):
     status_code=200,
 )
 async def login(credentials: LoginRequest, auth_service: auth_service_dependency):
-    return await auth_service.login(credentials.model_dump())
+    return await auth_service.login(credentials)
 
 
 @router.post(
@@ -123,9 +123,11 @@ async def verify_password_reset(
 )
 async def logout(
     current_user: current_user_dependency,
-    access_token: oauth2_scheme_dependency,
+    access_token: bearer_scheme_dependency,
     data: RefreshTokenRequest,
     auth_service: auth_service_dependency,
 ):
+    access_token = getattr(access_token, "credentials", None)  # type: ignore
+
     await auth_service.logout(access_token, data.refresh_token)
     return MessageResponse(message="Successfully logged out.")

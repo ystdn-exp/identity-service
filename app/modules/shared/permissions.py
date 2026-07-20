@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from app.modules.shared.enums import UserRole
-from app.modules.shared.exceptions import ForbiddenError
+from app.modules.shared.exceptions.constants import ForbiddenError
 from app.core.database.dependencies import current_user_dependency
 
 

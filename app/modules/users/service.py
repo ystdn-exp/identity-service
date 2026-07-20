@@ -11,6 +11,7 @@ from app.core.database.connection import db_dependency
 from app.modules.shared.exceptions import NotFoundError
 from app.modules.shared.utils import create_otp, generate_otp_code, otp_exists
 from app.modules.users.tasks.email_verification import send_otp_email
+from app.modules.users.api.v1.schemas import UserUpdate, UserEmailUpdate
 
 
 class UserService:
@@ -41,11 +42,11 @@ class UserService:
         await self.db.commit()
         return True
 
-    async def update_user(self, user_id: UUID, update_data: dict):
+    async def update_user(self, user_id: UUID, update_data: UserUpdate):
         """Update a user's information."""
         user = await self.get_user_by_id(user_id)
 
-        for key, value in update_data.items():
+        for key, value in update_data.model_dump().items():
             setattr(user, key, value)
 
         await self.db.commit()
@@ -53,27 +54,27 @@ class UserService:
         return user
 
     async def update_user_email(
-        self, current_user: User, user_id: UUID, update_data: dict
+        self, current_user: User, user_id: UUID, update_data: UserEmailUpdate
     ):
         """Update a user's email."""
         user = await self.get_user_by_id(user_id)
 
         # verify email change for regular users
         if current_user.role == UserRole.USER and (
-            "email" in update_data and update_data.get("email") != user.email
+            update_data.email and update_data.email != user.email
         ):
             user.is_verified = False
             user.last_verified_at = datetime.now(
                 timezone.utc
             )  # update last_verified_at to prevent cleanup of unverified users
 
-            otp = await otp_exists(self.db, update_data.get("email"), OTPType.EMAIL_CHANGE)  # type: ignore
+            otp = await otp_exists(self.db, update_data.email, OTPType.EMAIL_CHANGE)  # type: ignore
             if not otp:
                 code = generate_otp_code()
-                await create_otp(self.db, update_data.get("email"), OTPType.EMAIL_CHANGE, code)  # type: ignore
-                send_otp_email.delay(update_data.get("email"), OTPType.EMAIL_CHANGE.value, code)  # type: ignore
+                await create_otp(self.db, update_data.email, OTPType.EMAIL_CHANGE, code)  # type: ignore
+                send_otp_email.delay(update_data.email, OTPType.EMAIL_CHANGE.value, code)  # type: ignore
 
-        user.email = update_data.get("email")  # type: ignore
+        user.email = update_data.email  # type: ignore
 
         await self.db.commit()
         await self.db.refresh(user)

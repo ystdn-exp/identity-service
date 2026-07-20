@@ -67,9 +67,7 @@ async def update_user(
     current_user: require_self_or_admin_dependency,
     user_service: user_service_dependency,
 ):
-    updated_user = await user_service.update_user(
-        user_id, data.model_dump(exclude_unset=True)
-    )
+    updated_user = await user_service.update_user(user_id, data)
     return updated_user
 
 
@@ -86,9 +84,7 @@ async def update_user_email(
     current_user: require_self_or_admin_dependency,
     user_service: user_service_dependency,
 ):
-    updated_user = await user_service.update_user_email(
-        current_user, user_id, data.model_dump()
-    )
+    updated_user = await user_service.update_user_email(current_user, user_id, data)
     return updated_user
 
 

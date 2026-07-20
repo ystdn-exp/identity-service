@@ -10,7 +10,7 @@ from app.core.settings import (
     JWT_ALGORITHM,
     settings,
 )
-from app.modules.shared.exceptions import UnauthorizedError
+from app.modules.shared.exceptions.constants import UnauthorizedError
 from app.modules.users.models import User
 
 

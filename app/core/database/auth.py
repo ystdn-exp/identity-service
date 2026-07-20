@@ -1,20 +1,20 @@
 from typing import Annotated
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer
 from sqlalchemy import select
 
 from app.modules.users.models import User, TokenBlacklist
 from app.core.database.connection import db_dependency
 from app.modules.shared.security import decode_jwt_token
-from app.modules.shared.exceptions import UnauthorizedError
+from app.modules.shared.exceptions.constants import UnauthorizedError
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
-oauth2_scheme_dependency = Annotated[str, Depends(oauth2_scheme)]
+http_bearer = HTTPBearer(auto_error=False)
+bearer_scheme_dependency = Annotated[str, Depends(http_bearer)]
 
 
 async def get_current_user(
-    token: oauth2_scheme_dependency,
+    token: bearer_scheme_dependency,
     db: db_dependency,
 ):
     """
@@ -25,6 +25,7 @@ async def get_current_user(
         db (AsyncSession): Database session.
     """
 
+    token = getattr(token, "credentials", None)  # type: ignore
     if token is None:
         raise UnauthorizedError("Not authenticated.")
 
